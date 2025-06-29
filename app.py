@@ -8,6 +8,9 @@ import yfinance as yf
 from sklearn.preprocessing import MinMaxScaler
 import os
 plt.style.use("fivethirtyeight")
+from curl_cffi import requests
+
+session = requests.Session(impersonate="chrome")
 
 app = Flask(__name__)
 
@@ -22,11 +25,11 @@ def index():
             stock = 'POWERGRID.NS'  # Default stock if none is entered
         
         # Define the start and end dates for stock data
-        start = dt.datetime(2000, 1, 1)
-        end = dt.datetime(2024, 10, 1)
+        start = dt.datetime(2014, 1, 1)
+        end = dt.datetime.now()
         
         # Download stock data
-        df = yf.download(stock, start=start, end=end)
+        df = yf.download(stock, start=start, end=end,session=session)
         
         # Descriptive Data
         data_desc = df.describe()
@@ -47,7 +50,7 @@ def index():
         
         # Prepare data for prediction
         past_100_days = data_training.tail(100)
-        final_df = past_100_days.append(data_testing, ignore_index=True)
+        final_df = pd.concat([past_100_days, data_testing], ignore_index=True)
         input_data = scaler.fit_transform(final_df)
         
         x_test, y_test = [], []
